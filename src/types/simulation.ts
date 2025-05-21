@@ -43,6 +43,22 @@ export type Move = {
 
 export type ScenarioStatus = 'Strategic Gain' | 'Rising Tension' | 'Ecosystem Shock';
 
+export type SimulationOutcome = {
+  id: string;
+  title: string;
+  description: string;
+  strategicImplications: string;
+  suggestedNextMoves: string[];
+  riskLevel: 'Low' | 'Medium' | 'High';
+  perspectiveAnalysis: {
+    [key in Perspective]: {
+      summary: string;
+      keyInsight: string;
+      recommendation: string;
+    };
+  };
+};
+
 export type Scenario = {
   id: string;
   title: string;
@@ -54,6 +70,7 @@ export type Scenario = {
   currentMoveIndex: number;
   status: ScenarioStatus;
   imageSrc: string;
+  outcomes?: SimulationOutcome[];
 };
 
 export type Perspective = 'Regulator' | 'CRO' | 'Investor';

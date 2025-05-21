@@ -21,7 +21,11 @@ const TrustMeter = ({ trust, label }: TrustMeterProps) => {
           <span>{trust}%</span>
         </div>
       )}
-      <Progress value={trust} className="h-2" indicatorClassName={getColor()} />
+      <Progress 
+        value={trust} 
+        className="h-2" 
+        indicatorClassName={getColor()} 
+      />
     </div>
   );
 };

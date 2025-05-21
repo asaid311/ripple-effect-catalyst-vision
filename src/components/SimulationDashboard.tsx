@@ -3,17 +3,20 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Scenario } from "@/types/simulation";
+import { Scenario, Perspective } from "@/types/simulation";
 import AgentMap from "./AgentMap";
 import MoveCard from "./MoveCard";
+import PerspectiveView from "./PerspectiveView";
 
 interface SimulationDashboardProps {
   scenario: Scenario;
+  perspective?: Perspective;
 }
 
-const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
+const SimulationDashboard = ({ scenario, perspective = "CRO" }: SimulationDashboardProps) => {
   const [currentMoveId, setCurrentMoveId] = useState<string | null>(null);
   const [round, setRound] = useState(1);
+  const [currentPerspective, setCurrentPerspective] = useState<Perspective>(perspective);
   
   // Set default selected move to the first one if none selected
   const selectedMoveIndex = currentMoveId 
@@ -51,7 +54,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
   
   return (
     <div className="container py-24 max-w-7xl">
-      <Card className="mb-8">
+      <Card className="mb-8 animate-fade-in">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-start">
             <div>
@@ -59,7 +62,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
               <CardTitle>{scenario.title}</CardTitle>
             </div>
             <div className="flex items-center">
-              <div className={`px-4 py-1.5 rounded-full text-sm font-medium ${getStatusColor()} bg-card border border-border`}>
+              <div className={`px-4 py-1.5 rounded-full text-sm font-medium ${getStatusColor()} bg-card border border-border animate-pulse`}>
                 {getStatusEmoji()} {scenario.status}
               </div>
               <div className="ml-4 px-3 py-1.5 rounded-full text-sm font-medium bg-card border border-border">
@@ -70,6 +73,27 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">{scenario.backgroundContext}</p>
+          
+          <PerspectiveView perspective={currentPerspective} showFor={["CRO"]}>
+            <div className="mt-4 px-4 py-3 bg-primary/5 rounded-md border border-primary/10">
+              <p className="text-sm font-medium text-primary">CRO Perspective: </p>
+              <p className="text-sm">Focus on revenue implications and competitive positioning against other bureaus.</p>
+            </div>
+          </PerspectiveView>
+          
+          <PerspectiveView perspective={currentPerspective} showFor={["Regulator"]}>
+            <div className="mt-4 px-4 py-3 bg-yellow-500/5 rounded-md border border-yellow-500/10">
+              <p className="text-sm font-medium text-yellow-500">Regulator Perspective: </p>
+              <p className="text-sm">Consider systemic risk implications and consumer protection concerns.</p>
+            </div>
+          </PerspectiveView>
+          
+          <PerspectiveView perspective={currentPerspective} showFor={["Investor"]}>
+            <div className="mt-4 px-4 py-3 bg-green-500/5 rounded-md border border-green-500/10">
+              <p className="text-sm font-medium text-green-500">Investor Perspective: </p>
+              <p className="text-sm">Evaluate long-term market position and competitive advantage implications.</p>
+            </div>
+          </PerspectiveView>
         </CardContent>
       </Card>
       
@@ -78,7 +102,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
           <AgentMap scenario={scenario} />
           
           <div className="mt-6">
-            <Card>
+            <Card className="transition-all hover:shadow-md duration-300">
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg">Bureau Response Analysis</CardTitle>
               </CardHeader>
@@ -92,7 +116,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
                     size="lg" 
                     disabled={!currentMoveId}
                     onClick={handleExecuteMove}
-                    className="px-8"
+                    className="px-8 transform transition-transform duration-200 hover:scale-105"
                   >
                     Execute Move
                   </Button>
@@ -102,7 +126,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
           </div>
         </div>
         
-        <div>
+        <div className="animate-fade-in">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Available Strategic Moves</CardTitle>
@@ -121,6 +145,7 @@ const SimulationDashboard = ({ scenario }: SimulationDashboardProps) => {
                       move={move}
                       isActive={move.id === currentMoveId}
                       onSelect={() => setCurrentMoveId(move.id)}
+                      perspective={currentPerspective}
                     />
                   ))}
                 </TabsContent>

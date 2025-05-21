@@ -34,13 +34,13 @@ const SimulationPage = () => {
           <Button 
             variant="ghost" 
             onClick={() => navigate("/")}
-            className="mb-2"
+            className="mb-2 transition-colors hover:bg-secondary/50"
           >
             ← Back to Control Room
           </Button>
         </div>
         
-        <SimulationDashboard scenario={scenario} />
+        <SimulationDashboard scenario={scenario} perspective={perspective} />
       </div>
     </div>
   );

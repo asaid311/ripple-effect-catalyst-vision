@@ -39,19 +39,24 @@ const AgentNode = ({ agent, selected, onClick }: AgentNodeProps) => {
       <div 
         className={cn(
           "rounded-full w-14 h-14 flex items-center justify-center border-2",
-          "shadow-lg transition-all",
+          "shadow-lg transition-all duration-500",
           getAgentColor(),
-          selected && "ring-2 ring-white ring-offset-2 ring-offset-background"
+          selected && "ring-4 ring-white/30 animate-pulse"
         )}
       >
-        <div className="text-sm font-semibold">
+        <div className={cn(
+          "text-sm font-semibold",
+          "transition-all duration-300",
+          selected && "scale-110"
+        )}>
           {agent.type.substring(0, 2)}
         </div>
       </div>
       
       <div className={cn(
         "absolute -bottom-8 left-1/2 transform -translate-x-1/2 whitespace-nowrap",
-        "px-2 py-1 bg-background/80 rounded text-xs font-medium shadow-md",
+        "px-2 py-1 bg-background/80 backdrop-blur-sm rounded text-xs font-medium shadow-md",
+        "transition-all duration-300",
         selected ? "opacity-100" : "opacity-70"
       )}>
         {agent.name} ({agent.role})
@@ -59,10 +64,10 @@ const AgentNode = ({ agent, selected, onClick }: AgentNodeProps) => {
       
       {selected && (
         <div 
-          className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 whitespace-nowrap"
+          className="absolute -bottom-20 left-1/2 transform -translate-x-1/2 whitespace-nowrap animate-fade-in"
           style={{ width: "150px" }}
         >
-          <div className="px-2 py-1 bg-card/90 rounded text-xs shadow-md text-center">
+          <div className="px-2 py-1 bg-card/90 backdrop-blur-sm rounded text-xs shadow-md text-center">
             {agent.shortTermGoal}
           </div>
         </div>

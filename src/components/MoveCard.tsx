@@ -2,15 +2,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Move } from "@/types/simulation";
+import { Move, Perspective } from "@/types/simulation";
+import PerspectiveView from "./PerspectiveView";
 
 interface MoveCardProps {
   move: Move;
   onSelect: () => void;
   isActive: boolean;
+  perspective: Perspective;
 }
 
-const MoveCard = ({ move, onSelect, isActive }: MoveCardProps) => {
+const MoveCard = ({ move, onSelect, isActive, perspective = "CRO" }: MoveCardProps) => {
   const getMoveTypeColor = () => {
     switch (move.type) {
       case "Collaborate":
@@ -28,9 +30,22 @@ const MoveCard = ({ move, onSelect, isActive }: MoveCardProps) => {
     }
   };
 
+  const getPerspectiveInsight = () => {
+    switch (perspective) {
+      case "CRO":
+        return "Revenue impact: potentially positive.";
+      case "Regulator":
+        return "Compliance implications need review.";
+      case "Investor":
+        return "Long-term growth indicator.";
+      default:
+        return "";
+    }
+  };
+
   return (
     <Card className={`w-full transition-all duration-300 ${
-      isActive ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "opacity-80"
+      isActive ? "ring-2 ring-primary ring-offset-2 ring-offset-background" : "opacity-80 hover:opacity-100"
     }`}>
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex justify-between items-start">
@@ -61,11 +76,28 @@ const MoveCard = ({ move, onSelect, isActive }: MoveCardProps) => {
             })}
           </div>
         </div>
+        
+        <div className="mt-4 p-2 bg-secondary/30 rounded text-xs">
+          <PerspectiveView perspective={perspective} showFor={["CRO"]}>
+            <p className="font-medium text-primary">CRO Analysis:</p>
+            <p>Focus on maximizing market share and revenue opportunities.</p>
+          </PerspectiveView>
+          
+          <PerspectiveView perspective={perspective} showFor={["Regulator"]}>
+            <p className="font-medium text-yellow-500">Regulatory Analysis:</p>
+            <p>Consider potential compliance risks and consumer impact.</p>
+          </PerspectiveView>
+          
+          <PerspectiveView perspective={perspective} showFor={["Investor"]}>
+            <p className="font-medium text-green-500">Investor Analysis:</p>
+            <p>Evaluate long-term strategic positioning and competitive advantages.</p>
+          </PerspectiveView>
+        </div>
       </CardContent>
       <Separator />
       <CardFooter className="pt-3">
         <Button 
-          className="w-full" 
+          className="w-full transition-colors hover:bg-primary/90" 
           variant={isActive ? "default" : "outline"}
           onClick={onSelect}
           disabled={isActive}
