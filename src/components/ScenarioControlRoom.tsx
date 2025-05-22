@@ -1,62 +1,148 @@
 
-import { useState } from "react";
-import { scenarios } from "@/data/scenarios";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ScenarioCard from "@/components/ScenarioCard";
-import { Perspective, ScenarioStatus } from "@/types/simulation";
+import { Perspective } from "@/types/simulation"; // ScenarioStatus might be removed or adapted
+import { fetchScenarios, Scenario as ApiScenario } from "@/services/simulationApi";
+import { useSimulation } from "@/App"; 
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface ScenarioControlRoomProps {
   perspective: Perspective;
 }
 
 const ScenarioControlRoom = ({ perspective }: ScenarioControlRoomProps) => {
-  const [filter, setFilter] = useState<ScenarioStatus | "All">("All");
-  
-  const filteredScenarios = filter === "All" 
-    ? scenarios 
-    : scenarios.filter(scenario => scenario.status === filter);
+  const [apiScenarios, setApiScenarios] = useState<ApiScenario[]>([]);
+  const [uiLoading, setUiLoading] = useState<boolean>(true); // Separate loading state for UI
+  const [uiError, setUiError] = useState<string | null>(null);
+  // Filter state - adapt based on actual scenario properties if needed
+  const [filter, setFilter] = useState<string>("All"); 
+
+  const { 
+    startNewSimulation, 
+    isLoading: isSimContextLoading, 
+    error: simContextError,
+    resetSimulation, // Get resetSimulation from context
+    simulationStatus, // Get status to potentially show "Simulating..." or allow reset
+    selectedScenario
+  } = useSimulation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const loadScenarios = async () => {
+      setUiLoading(true);
+      try {
+        const fetchedScenarios = await fetchScenarios();
+        setApiScenarios(fetchedScenarios);
+        setUiError(null);
+      } catch (err) {
+        console.error("Error fetching scenarios:", err);
+        const errorMessage = err instanceof Error ? err.message : "Failed to load scenarios. Please try again later.";
+        setUiError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setUiLoading(false);
+      }
+    };
+    loadScenarios();
+  }, []);
+
+  const handleStartSimulation = (scenario: ApiScenario) => {
+    if (simulationStatus === 'running' || simulationStatus === 'loading') {
+        toast.info("A simulation is already in progress or loading.");
+        return;
+    }
+    startNewSimulation(scenario, navigate);
+  };
+
+  const handleResetAndGoHome = () => {
+    resetSimulation(navigate); // navigate to home is handled by resetSimulation
+  };
+
+  // Example filtering - adapt based on your ApiScenario structure
+  const filteredApiScenarios = filter === "All" 
+    ? apiScenarios 
+    : apiScenarios.filter(s => s.id.includes(filter.toLowerCase())); // Example: filter by part of ID or name
+
+  useEffect(() => {
+    if (simContextError) {
+      toast.error(`Simulation Error: ${simContextError}`);
+    }
+  }, [simContextError]);
+
+  if (uiLoading) {
+    return <div className="container py-24 text-center">Loading scenarios...</div>;
+  }
+
+  if (uiError) {
+    return <div className="container py-24 text-center text-red-500">{uiError}</div>;
+  }
 
   return (
     <div className="container py-24">
       <div className="max-w-4xl mx-auto mb-12 text-center">
         <h1 className="text-4xl font-bold mb-4">Scenario Control Room</h1>
         <p className="text-xl text-muted-foreground">
-          Simulate the high-stakes consequences of altering Business Credit Agreements 
+          Select a scenario to simulate the high-stakes consequences of altering Business Credit Agreements 
           in a volatile ecosystem of competitive bureaus.
         </p>
+        {(simulationStatus === 'running' || simulationStatus === 'loading' || simulationStatus === 'completed') && selectedScenario && (
+          <div className="mt-4">
+            <p className="text-lg">
+              Currently viewing: <strong>{selectedScenario.name}</strong> (Status: {simulationStatus})
+            </p>
+            <Button onClick={() => navigate(`/simulation/${selectedScenario.id}`)} className="mt-2 mr-2">
+              Go to Simulation Dashboard
+            </Button>
+            <Button onClick={handleResetAndGoHome} variant="outline" className="mt-2">
+              Reset Simulation & Go Home
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div className="mb-8">
-        <div className="flex justify-center space-x-4">
-          <button 
-            onClick={() => setFilter("All")}
-            className={`px-4 py-2 rounded-md transition-all ${filter === "All" ? "bg-secondary text-white" : "text-muted-foreground hover:text-white"}`}
-          >
-            All Scenarios
-          </button>
-          <button 
-            onClick={() => setFilter("Strategic Gain")}
-            className={`px-4 py-2 rounded-md transition-all ${filter === "Strategic Gain" ? "bg-green-500/20 text-green-400" : "text-muted-foreground hover:text-white"}`}
-          >
-            Strategic Gain
-          </button>
-          <button 
-            onClick={() => setFilter("Rising Tension")}
-            className={`px-4 py-2 rounded-md transition-all ${filter === "Rising Tension" ? "bg-yellow-500/20 text-yellow-400" : "text-muted-foreground hover:text-white"}`}
-          >
-            Rising Tension
-          </button>
-          <button 
-            onClick={() => setFilter("Ecosystem Shock")}
-            className={`px-4 py-2 rounded-md transition-all ${filter === "Ecosystem Shock" ? "bg-red-500/20 text-red-400" : "text-muted-foreground hover:text-white"}`}
-          >
-            Ecosystem Shock
-          </button>
-        </div>
+      {/* Filter buttons - adapt based on actual scenario properties */}
+      <div className="mb-8 flex justify-center space-x-4">
+        <Button 
+          onClick={() => setFilter("All")}
+          variant={filter === "All" ? "secondary" : "ghost"}
+        >
+          All
+        </Button>
+        <Button 
+          onClick={() => setFilter("gambit")} // Example filter
+          variant={filter === "gambit" ? "secondary" : "ghost"}
+        >
+          Gambits
+        </Button>
+        <Button 
+          onClick={() => setFilter("breach")} // Example filter
+          variant={filter === "breach" ? "secondary" : "ghost"}
+        >
+          Breaches
+        </Button>
+         <Button 
+          onClick={() => setFilter("alliance")} // Example filter
+          variant={filter === "alliance" ? "secondary" : "ghost"}
+        >
+          Alliances
+        </Button>
       </div>
+
+      {isSimContextLoading && <div className="text-center my-4 text-lg">Initializing Simulation Environment... Please Wait.</div>}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredScenarios.map((scenario) => (
-          <ScenarioCard key={scenario.id} scenario={scenario} />
+        {filteredApiScenarios.map((scenario) => (
+          <ScenarioCard 
+            key={scenario.id} 
+            scenario={scenario} 
+            // Pass perspective if ScenarioCard uses it
+            // perspective={perspective} 
+            onStartSimulation={() => handleStartSimulation(scenario)}
+            // Disable start button if a simulation is active and it's not the current one
+            isSimulationActive={ (simulationStatus === 'running' || simulationStatus === 'loading' || simulationStatus === 'completed') && selectedScenario?.id !== scenario.id }
+          />
         ))}
       </div>
       
